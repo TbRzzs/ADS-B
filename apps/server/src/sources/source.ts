@@ -7,7 +7,7 @@ export interface SourceHooks {
   receiver?: (position: LatLon) => void;
 }
 
-/** Una fuente de datos ADS-B (decodificador real o simulador). */
+/** Una fuente de datos ADS-B del decodificador del receptor. */
 export interface AircraftSource {
   readonly kind: SourceKind;
   start(push: PushUpdates, hooks?: SourceHooks): void;

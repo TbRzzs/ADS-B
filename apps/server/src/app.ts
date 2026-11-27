@@ -18,7 +18,6 @@ import { ROOT_DIR, type Env } from './env';
 import { radiusSchema, SettingsStore, settingsPatchSchema } from './settings-store';
 import { ReadsbJsonSource } from './sources/readsb';
 import { SbsSource } from './sources/sbs';
-import { SimulatorSource } from './sources/simulator';
 import type { AircraftSource, SourceLogger } from './sources/source';
 import { Tracker } from './tracker';
 
@@ -36,14 +35,12 @@ const eventsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).default(50),
 });
 
-function createSource(env: Env, settings: SettingsStore, log: SourceLogger): AircraftSource {
+function createSource(env: Env, log: SourceLogger): AircraftSource {
   switch (env.SOURCE) {
     case 'readsb':
       return new ReadsbJsonSource(env.READSB_URL, env.READSB_POLL_MS, log);
     case 'sbs':
       return new SbsSource(env.SBS_HOST, env.SBS_PORT, log);
-    case 'simulator':
-      return new SimulatorSource(() => settings.get().receiver, env.SIM_AIRCRAFT);
   }
 }
 
@@ -71,7 +68,7 @@ export async function buildApp(env: Env): Promise<FastifyInstance> {
     timeoutS: env.AIRCRAFT_TIMEOUT_S,
     positionStaleS: env.POSITION_STALE_S,
   });
-  const source = createSource(env, settings, {
+  const source = createSource(env, {
     info: (m) => app.log.info(m),
     warn: (m) => app.log.warn(m),
   });

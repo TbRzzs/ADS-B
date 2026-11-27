@@ -22,7 +22,7 @@ const MapView = lazy(() => import('./map/MapView'));
 const EMPTY: readonly Aircraft[] = [];
 const mapFallback = <div className="map placeholder">Cargando mapa…</div>;
 
-const SOURCE_NAME = { simulator: 'Simulador', readsb: 'Receptor', sbs: 'Receptor' } as const;
+const SOURCE_NAME = { readsb: 'Receptor', sbs: 'Receptor' } as const;
 const RECEIVER_NAME: Record<ReceiverSource, string> = {
   decoder: 'ubicación del receptor',
   device: 'ubicación del dispositivo',

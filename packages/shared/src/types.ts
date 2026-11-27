@@ -1,12 +1,12 @@
 /** Origen de la posición/mensaje según el decodificador. */
-export type PositionSource = 'adsb' | 'mlat' | 'tisb' | 'mode_s' | 'other' | 'sim';
+export type PositionSource = 'adsb' | 'mlat' | 'tisb' | 'mode_s' | 'other';
 
 export interface LatLon {
   lat: number;
   lon: number;
 }
 
-/** Avión normalizado (independiente de la fuente: readsb, SBS o simulador). */
+/** Avión normalizado (independiente de la fuente: readsb o SBS). */
 export interface Aircraft {
   /** Dirección ICAO de 24 bits en hex minúsculas (p. ej. "a1b2c3"). */
   hex: string;
@@ -103,11 +103,11 @@ export interface SettingsPatch {
   radiusKm?: number;
 }
 
-export type SourceKind = 'simulator' | 'readsb' | 'sbs';
+export type SourceKind = 'readsb' | 'sbs';
 
 export interface SourceStatus {
   kind: SourceKind;
-  /** Descripción del destino (URL, host:puerto o "simulador"). */
+  /** Descripción del destino (URL o host:puerto). */
   target: string;
   connected: boolean;
   lastDataAt?: number;

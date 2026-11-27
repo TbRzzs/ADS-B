@@ -16,12 +16,11 @@ const schema = z.object({
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 
-  SOURCE: z.enum(['simulator', 'readsb', 'sbs']).default('simulator'),
+  SOURCE: z.enum(['readsb', 'sbs']).default('readsb'),
   READSB_URL: z.string().default('http://127.0.0.1:8080/data/aircraft.json'),
   READSB_POLL_MS: z.coerce.number().int().min(250).default(1000),
   SBS_HOST: z.string().default('127.0.0.1'),
   SBS_PORT: z.coerce.number().int().min(1).max(65535).default(30003),
-  SIM_AIRCRAFT: z.coerce.number().int().min(1).max(500).default(30),
 
   RECEIVER_LAT: z.coerce.number().min(-90).max(90).default(4.7016),
   RECEIVER_LON: z.coerce.number().min(-180).max(180).default(-74.1469),

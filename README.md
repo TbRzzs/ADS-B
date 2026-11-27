@@ -4,10 +4,7 @@ Rastreo local de aviones con una antena **AirNav Radar ADS-B 1090 MHz**: **API**
 y **mapa web** que funciona **sin internet**, con **radio de detección configurable**
 (3, 5, 8, 15, 20, 30 km o cualquier valor entre 0,5 y 400 km).
 
-> **Sin la antena todavía:** el proyecto trae un **simulador** (modo por defecto) y un **emulador de
-> decodificador**, así puedes desarrollar y probar todo desde ya.
-
-> **Ojo con el hardware:** la antena sola no basta, también hace falta un **receptor SDR USB**
+> **Hardware necesario:** la antena sola no basta, también hace falta un **receptor SDR USB**
 > (p. ej. AirNav FlightStick) y un decodificador (readsb/dump1090).
 > Lee **[docs/HARDWARE.md](docs/HARDWARE.md)**.
 
@@ -28,7 +25,7 @@ y **mapa web** que funciona **sin internet**, con **radio de detección configur
 - Listado de aviones y de entradas/salidas: **plegado por defecto** (botón "Aviones" abajo a la
   derecha), con buscador.
 - Ubicación de la antena automática (decodificador o dispositivo).
-- Tres fuentes de datos: `simulator`, `readsb` (`aircraft.json`) y `sbs` (TCP 30003).
+- Datos del receptor mediante `readsb` (`aircraft.json`, por defecto) o `sbs` (TCP 30003).
 - Mapa offline (OpenStreetMap/Protomaps en un solo archivo `.pmtiles`).
 - Se usa desde el PC, el móvil o la tablet de tu red local.
 
@@ -37,16 +34,41 @@ y **mapa web** que funciona **sin internet**, con **radio de detección configur
 
 ## Inicio rápido
 
-Requisitos: **Node.js ≥ 20.12** (probado con 24).
+Requisitos: **Node.js ≥ 20.12** (probado con 24), antena 1090 MHz, receptor SDR y un decodificador
+en funcionamiento. Configura el hardware siguiendo **[docs/HARDWARE.md](docs/HARDWARE.md)**.
 
 ```bash
 npm install
 cp .env.example .env          # en PowerShell: Copy-Item .env.example .env
+```
+
+En `.env`, configura la conexión al decodificador. Para readsb/dump1090 con salida JSON:
+
+```ini
+SOURCE=readsb
+READSB_URL=http://127.0.0.1:8080/data/aircraft.json
+```
+
+Para dump1090 en Windows con salida SBS:
+
+```ini
+SOURCE=sbs
+SBS_HOST=127.0.0.1
+SBS_PORT=30003
+```
+
+Si el decodificador está en otro equipo, usa su IP en lugar de `127.0.0.1`.
+Arranca el decodificador y después la aplicación:
+
+```bash
 npm run dev                   # API :4000 + web con recarga en caliente :5173
 ```
 
-Abre **http://localhost:5173**. Verás aviones simulados alrededor de la posición del `.env`.
-Pon **tu ubicación** en `RECEIVER_LAT/RECEIVER_LON` o desde *Ajustes* en la web.
+Abre **http://localhost:5173**. Verás los aviones con posición recibidos por la antena.
+Si el decodificador no está disponible, la interfaz muestra **Receptor sin datos** y el mapa queda
+sin aviones al arrancar. La aplicación reintenta la conexión automáticamente.
+Confirma **la ubicación de la antena** en *Ajustes* o configura `RECEIVER_LAT/RECEIVER_LON` como valores
+iniciales si el decodificador no proporciona su posición.
 
 ### Producción (un solo proceso, todo en el puerto 4000)
 
@@ -96,19 +118,7 @@ La barra superior indica de dónde salió.
 > El FlightStick no tiene GPS: la antena por sí sola no puede saber dónde está. Por eso se usa la
 > ubicación configurada en el decodificador o la del dispositivo.
 
-## Probar el modo "real" sin antena
-
-```bash
-npm run decoder:fake          # emula readsb: :8080/data/aircraft.json y SBS :30003
-# en otra terminal, con SOURCE=readsb (o SOURCE=sbs) en .env:
-npm run dev
-```
-
-El emulador pone 9 aviones en órbita a 2, 4, 7, 10, 14, 18, 25, 33 y 40 km. Sirve para comprobar
-cada radio. También publica `receiver.json`, así que con `SOURCE=readsb` la API se georreferencia sola
-(`--lat`/`--lon` del emulador cambian esa ubicación).
-
-## Cuando llegue la antena
+## Uso con la antena
 
 1. Instala el decodificador (Raspberry Pi o Windows): ver [docs/HARDWARE.md](docs/HARDWARE.md).
 2. En `.env`:
@@ -117,7 +127,8 @@ cada radio. También publica `receiver.json`, así que con `SOURCE=readsb` la AP
    READSB_URL=http://127.0.0.1:8080/data/aircraft.json
    # o bien:  SOURCE=sbs  SBS_HOST=127.0.0.1  SBS_PORT=30003
    ```
-3. `npm start`. La ubicación se toma del decodificador; si no la tiene, se usa la del dispositivo.
+3. Ejecuta `npm run build` y luego `npm start`. La ubicación se toma del decodificador; si no la tiene,
+   se solicita la del dispositivo. Confirma que corresponde al lugar donde está instalada la antena.
 
 ## API
 
@@ -137,9 +148,9 @@ Documentación completa en **[docs/API.md](docs/API.md)**. Resumen:
 
 ```
 packages/shared/   Tipos, constantes y geodesia (haversine, rumbos, círculos) — con tests
-apps/server/       API Fastify: fuentes (simulador / readsb / SBS), tracker, REST + WebSocket
+apps/server/       API Fastify: fuentes (readsb / SBS), tracker, REST + WebSocket
 apps/web/          React 19 + Vite + MapLibre GL + PMTiles
-scripts/           download-map.mjs (mapa offline), fake-decoder.mjs (emulador)
+scripts/           download-map.mjs (mapa offline)
 docs/              Hardware, API, docker-compose del decodificador
 data/              settings.json (ajustes persistidos) y map/ (mapa offline) — fuera de git
 ```
@@ -173,7 +184,6 @@ data/              settings.json (ajustes persistidos) y map/ (mapa offline) —
 | `npm run typecheck` | TypeScript estricto en todos los paquetes |
 | `npm run map:colombia` | Descarga el mapa offline de Colombia |
 | `npm run map:download` | Descarga el mapa offline de otra zona (`--bbox`, `--lat/--lon`) |
-| `npm run decoder:fake` | Emulador de decodificador |
 
 ## Licencias de datos
 

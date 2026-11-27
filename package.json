@@ -18,8 +18,7 @@
     "typecheck": "npm run typecheck -w @adsb/shared && npm run typecheck -w @adsb/server && npm run typecheck -w @adsb/web",
     "test": "vitest run",
     "map:download": "node scripts/download-map.mjs",
-    "map:colombia": "node scripts/download-map.mjs --region colombia",
-    "decoder:fake": "node scripts/fake-decoder.mjs"
+    "map:colombia": "node scripts/download-map.mjs --region colombia"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

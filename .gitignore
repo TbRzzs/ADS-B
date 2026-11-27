@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+
+# Datos locales: ajustes persistidos y mapa offline descargado (pesado)
+data/settings.json
+data/map/
+!data/map/.gitkeep

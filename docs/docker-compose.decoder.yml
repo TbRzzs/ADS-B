@@ -1,0 +1,42 @@
+# Decodificador ADS-B (readsb + tar1090) para Raspberry Pi / Linux con el stick USB conectado.
+# Proyecto: https://github.com/sdr-enthusiasts/docker-adsb-ultrafeeder
+#
+#   docker compose -f docs/docker-compose.decoder.yml up -d
+#
+# Expone:
+#   http://<host>:8080/data/aircraft.json  → SOURCE=readsb
+#   <host>:30003 (SBS)                    → SOURCE=sbs
+#
+# Ajusta LAT/LON/ALT a la posición de tu antena antes de arrancar.
+services:
+  ultrafeeder:
+    image: ghcr.io/sdr-enthusiasts/docker-adsb-ultrafeeder:latest
+    container_name: ultrafeeder
+    restart: unless-stopped
+    device_cgroup_rules:
+      - 'c 189:* rwm'
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - ./ultrafeeder-data:/var/globe_history
+    ports:
+      - 8080:80       # tar1090 + /data/aircraft.json
+      - 30003:30003   # SBS-1 / BaseStation
+      - 30005:30005   # Beast (por si quieres alimentar otros servicios)
+    environment:
+      - TZ=America/Bogota
+      - READSB_DEVICE_TYPE=rtlsdr
+      # Número de serie del stick (rtl_test lo muestra). Vacío = primer dispositivo.
+      - READSB_RTLSDR_DEVICE=
+      - READSB_GAIN=autogain
+      - READSB_LAT=4.7016
+      - READSB_LON=-74.1469
+      - READSB_ALT=2600m
+      - READSB_RX_LOCATION_ACCURACY=2
+      - READSB_STATS_RANGE=true
+      - UPDATE_TAR1090=true
+      - TAR1090_DEFAULTCENTERLAT=4.7016
+      - TAR1090_DEFAULTCENTERLON=-74.1469
+    tmpfs:
+      - /run:exec,size=256M
+      - /tmp:size=128M
+      - /var/log:size=32M
